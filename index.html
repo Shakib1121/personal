@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#03061a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Our Anniversary ❤️</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+
+    <!-- ========================= -->
+    <!-- STAR & PARTICLE BACKGROUND -->
+    <!-- ========================= -->
+
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+    <div id="shooting-stars"></div>
+
+    <!-- ========================= -->
+    <!-- FLOATING HEARTS & TRAIL -->
+    <!-- ========================= -->
+
+    <div id="hearts-container"></div>
+    <div id="cursor-trail"></div>
+
+    <!-- ========================= -->
+    <!-- PASSWORD SCREEN -->
+    <!-- ========================= -->
+
+    <div id="login-screen">
+
+        <div class="login-card" id="loginCard">
+
+            <h1>Our Special Place</h1>
+
+            <p>
+                Only one person in the world knows the password...
+            </p>
+
+            <input type="password" id="password" placeholder="Enter Secret Password"
+                onkeyup="if(event.key==='Enter') checkPassword()">
+
+            <button onclick="checkPassword()" id="unlockBtn">
+                Unlock
+            </button>
+
+            <p id="error"></p>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- MAIN WEBSITE -->
+    <!-- ========================= -->
+
+    <div id="website">
+
+        <!-- HERO -->
+
+        <section class="hero">
+
+            <h1 class="glow-title">❤️ Happy Anniversary Oishe ❤️</h1>
+
+            <p>
+                1 bochor hoye gesee!!
+            </p>
+
+            <div class="music-widget">
+                <button id="musicBtn" class="music-btn" aria-label="Toggle Background Music">
+                    <span id="musicIcon">🎵</span>
+                    <span id="musicText">Play Music (Chitta)</span>
+                </button>
+            </div>
+
+            <audio id="music" loop preload="auto">
+                <source src="music/our-song.MP3" type="audio/mpeg">
+                <source src="music/our-song.mp3" type="audio/mpeg">
+            </audio>
+
+        </section>
+
+        <!-- COUNTDOWN -->
+
+        <section id="countdown-section">
+
+            <h2>Countdown</h2>
+
+            <div id="countdown">
+
+                <div class="box">
+                    <span id="days">0</span>
+                    <small>Days</small>
+                </div>
+
+                <div class="box">
+                    <span id="hours">0</span>
+                    <small>Hours</small>
+                </div>
+
+                <div class="box">
+                    <span id="minutes">0</span>
+                    <small>Minutes</small>
+                </div>
+
+                <div class="box">
+                    <span id="seconds">0</span>
+                    <small>Seconds</small>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ANNIVERSARY MESSAGE -->
+
+        <section id="celebration">
+
+            <h2 id="typewriter"></h2>
+
+        </section>
+
+        <!-- PHOTO SLIDESHOW -->
+
+        <section class="slideshow-section">
+
+            <h2>Photo Gallery of The Cutest Girl</h2>
+
+            <div class="slideshow-container">
+                <button class="slide-nav prev" id="prevSlide" aria-label="Previous Slide">❮</button>
+
+                <div class="slideshow">
+                    <img id="slide" src="images/photo (1).jpg" alt="Our Memories">
+                    <div id="slideCaption" class="slide-caption">Our Special Memories ❤️</div>
+                </div>
+
+                <button class="slide-nav next" id="nextSlide" aria-label="Next Slide">❯</button>
+            </div>
+
+            <div id="slideDots" class="slide-dots"></div>
+
+        </section>
+
+        <!-- TIMELINE -->
+
+        <section class="timeline-section">
+
+            <h2>📅 Our Journey 🖤</h2>
+
+            <div class="timeline">
+
+                <div class="event">
+                    <h3>🖤 First Interaction</h3>
+                    <p>13 June, 2025</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 First Confession</h3>
+                    <p>8 August, 2025</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 Acceptance</h3>
+                    <p>10 August, 2025</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 First Meeting</h3>
+                    <p>27 August, 2025</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 First Date</h3>
+                    <p>Manifesting</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 First Birthday</h3>
+                    <p>October, 2025</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 First Trip Together</h3>
+                    <p>Manifesting</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 First Anniversary</h3>
+                    <p>10 August, 2026</p>
+                </div>
+
+                <div class="event">
+                    <h3>🖤 Life Partner</h3>
+                    <p>Forever & Always</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ENVELOPE -->
+
+        <section class="letter-section">
+
+            <h2>💌 A Letter For You</h2>
+
+            <div class="envelope-wrapper" id="envelopeWrapper">
+                <div class="envelope-box" id="envelope">
+                    <div class="envelope-flap"></div>
+                    <div class="envelope-pocket"></div>
+                    <div class="envelope-seal">💖</div>
+                    <div class="envelope-hint">Letter a tap koro! 💌</div>
+                </div>
+            </div>
+
+            <div id="letter" class="letter-paper">
+
+                <h2 class="letter-title">My Love ❤️</h2>
+
+                <p class="letter-body">
+                    Thank you for tolerating me for 1 year
+                    <br><br>
+                    Thank you for loving me even more than I love you
+                    <br><br>
+                    Thank you for understanding me
+                    <br><br>
+                    Thank you for supporting me
+                    <br><br>
+                    Thank you for everything 💙
+                    <br><br>
+                    Happy Anniversary Oishe❤️
+                    <br><br>
+                    I love you Pakhi 🖤
+                </p>
+
+                <div class="letter-title">Forever & Always Yours 💕</div>
+                <div class="letter-signature">- Shakib ❤️</div>
+
+            </div>
+
+        </section>
+
+        <!-- ROSE -->
+
+        <section class="rose-section">
+
+            <h2> 🌹 Ekta Surprise</h2>
+
+            <div class="rose-wrapper">
+                <div id="rose" class="rose-element">
+                    🌹
+                </div>
+                <div id="petal-burst"></div>
+            </div>
+
+            <p id="roseText">
+                Click the rose ❤️
+            </p>
+
+        </section>
+
+        <!-- GIFT -->
+
+        <section class="gift-section">
+
+            <button id="giftBtn" class="pulse-gift-btn">
+
+                🎁 Open Your Surprise
+
+            </button>
+
+        </section>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
