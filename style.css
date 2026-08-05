@@ -956,32 +956,36 @@ p {
     font-size: 1rem;
   }
 
+  #countdown-section h2 {
+    font-size: 2.1rem;
+  }
+
   #countdown {
     margin-top: 25px;
-    padding: 0 12px;
+    padding: 0 10px;
   }
 
   .countdown-single-box {
-    padding: 16px 18px;
+    padding: 18px 20px;
     gap: 8px;
     border-radius: 22px;
   }
 
   .time-unit {
-    min-width: 52px;
+    min-width: 55px;
   }
 
   .time-unit span {
-    font-size: 3.1rem;
+    font-size: 3.5rem;
   }
 
   .time-unit small {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     letter-spacing: 1.5px;
   }
 
   .time-colon {
-    font-size: 2.3rem;
+    font-size: 2.6rem;
     margin-bottom: 12px;
   }
 
@@ -1034,34 +1038,38 @@ p {
     font-size: 1.7rem;
   }
 
+  #countdown-section h2 {
+    font-size: 1.65rem;
+  }
+
   #countdown {
     margin-top: 20px;
     padding: 0 4px;
   }
 
   .countdown-single-box {
-    padding: 14px 10px;
+    padding: 16px 8px;
     gap: 4px;
-    border-radius: 18px;
+    border-radius: 20px;
     max-width: 98%;
   }
 
   .time-unit {
-    min-width: 46px;
+    min-width: 48px;
   }
 
   .time-unit span {
-    font-size: 2.35rem;
+    font-size: 2.85rem;
   }
 
   .time-unit small {
-    font-size: 0.65rem;
+    font-size: 0.72rem;
     letter-spacing: 0.8px;
     margin-top: 2px;
   }
 
   .time-colon {
-    font-size: 1.7rem;
+    font-size: 2.1rem;
     margin-bottom: 10px;
   }
 
