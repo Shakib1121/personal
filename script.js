@@ -328,7 +328,7 @@ if (musicBtn && music) {
    ANNIVERSARY COUNTDOWN
 ========================================== */
 
-const anniversaryDate = new Date("August 5, 2026 00:00:00").getTime();
+const anniversaryDate = new Date("August 10, 2026 00:00:00").getTime();
 const countdownTimer = setInterval(updateCountdown, 1000);
 
 function updateCountdown() {
