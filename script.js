@@ -377,10 +377,10 @@ function countdownFinished() {
     const mEl = document.getElementById("minutes");
     const sEl = document.getElementById("seconds");
 
-    if (dEl) dEl.innerHTML = "0";
-    if (hEl) hEl.innerHTML = "0";
-    if (mEl) mEl.innerHTML = "0";
-    if (sEl) sEl.innerHTML = "0";
+    if (dEl) dEl.innerHTML = "00";
+    if (hEl) hEl.innerHTML = "00";
+    if (mEl) mEl.innerHTML = "00";
+    if (sEl) sEl.innerHTML = "00";
 
     // Reveal hero section (Anniversary title & text)
     const heroSection = document.querySelector(".hero");
