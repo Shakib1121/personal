@@ -447,15 +447,16 @@ p {
 }
 
 .time-unit span {
-  font-size: 3.3rem;
+  font-family: 'Dancing Script', cursive;
+  font-size: 3.8rem;
   font-weight: 700;
   color: #ffd5ec;
-  text-shadow: 0 0 14px rgba(255, 120, 180, 0.65);
-  line-height: 1.1;
+  text-shadow: 0 0 16px rgba(255, 120, 180, 0.7);
+  line-height: 1;
 }
 
 .time-unit small {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 0.85rem;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -463,10 +464,11 @@ p {
 }
 
 .time-colon {
-  font-size: 2.6rem;
+  font-family: 'Dancing Script', cursive;
+  font-size: 3rem;
   font-weight: 700;
-  color: rgba(255, 180, 220, 0.75);
-  margin-bottom: 22px;
+  color: rgba(255, 180, 220, 0.8);
+  margin-bottom: 14px;
   animation: colonPulse 2s ease-in-out infinite;
 }
 
@@ -960,17 +962,17 @@ p {
   }
 
   .countdown-single-box {
-    padding: 18px 22px;
-    gap: 12px;
+    padding: 16px 18px;
+    gap: 8px;
     border-radius: 22px;
   }
 
   .time-unit {
-    min-width: 50px;
+    min-width: 52px;
   }
 
   .time-unit span {
-    font-size: 2.4rem;
+    font-size: 3.1rem;
   }
 
   .time-unit small {
@@ -979,8 +981,8 @@ p {
   }
 
   .time-colon {
-    font-size: 1.8rem;
-    margin-bottom: 18px;
+    font-size: 2.3rem;
+    margin-bottom: 12px;
   }
 
   #typewriter {
@@ -1034,33 +1036,33 @@ p {
 
   #countdown {
     margin-top: 20px;
-    padding: 0 8px;
+    padding: 0 4px;
   }
 
   .countdown-single-box {
-    padding: 14px 14px;
-    gap: 6px;
+    padding: 14px 10px;
+    gap: 4px;
     border-radius: 18px;
-    max-width: 96%;
+    max-width: 98%;
   }
 
   .time-unit {
-    min-width: 42px;
+    min-width: 46px;
   }
 
   .time-unit span {
-    font-size: 1.7rem;
+    font-size: 2.35rem;
   }
 
   .time-unit small {
     font-size: 0.65rem;
-    letter-spacing: 1px;
-    margin-top: 3px;
+    letter-spacing: 0.8px;
+    margin-top: 2px;
   }
 
   .time-colon {
-    font-size: 1.3rem;
-    margin-bottom: 14px;
+    font-size: 1.7rem;
+    margin-bottom: 10px;
   }
 
   .slideshow img {
