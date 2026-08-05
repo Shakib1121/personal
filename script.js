@@ -241,7 +241,7 @@ function createHeart() {
 setInterval(createHeart, isMobile ? 1200 : 700);
 
 /* ==========================================
-   MUSIC TOGGLE PLAYER (OFF BY DEFAULT)
+   MUSIC TOGGLE PLAYER (PERSISTENT ACROSS PAGES)
 ========================================== */
 
 const music = document.getElementById("music");
@@ -249,29 +249,79 @@ const musicBtn = document.getElementById("musicBtn");
 const musicText = document.getElementById("musicText");
 const musicIcon = document.getElementById("musicIcon");
 
-let musicPlaying = false; // Kept off by default
+let musicPlaying = false;
+
+function syncMusicState() {
+    if (!music) return;
+
+    music.addEventListener("timeupdate", () => {
+        if (musicPlaying) {
+            sessionStorage.setItem("bgMusicTime", music.currentTime);
+        }
+    });
+
+    const isSavedPlaying = sessionStorage.getItem("bgMusicPlaying") === "true";
+    const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
+
+    if (isSavedPlaying) {
+        if (savedTime > 0) {
+            try { music.currentTime = savedTime; } catch (e) { }
+        }
+        playMusic();
+    }
+}
+
+function playMusic() {
+    if (!music) return;
+    music.play().then(() => {
+        musicPlaying = true;
+        sessionStorage.setItem("bgMusicPlaying", "true");
+        if (musicText) musicText.innerText = "Pause Music (Chitta)";
+        if (musicIcon) musicIcon.innerText = "⏸️";
+        if (musicBtn) musicBtn.classList.add("playing");
+    }).catch((err) => {
+        console.log("Audio play deferred or blocked:", err);
+        const resumeAudio = () => {
+            if (sessionStorage.getItem("bgMusicPlaying") === "true" && !musicPlaying) {
+                const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
+                if (savedTime > 0 && music.currentTime === 0) {
+                    try { music.currentTime = savedTime; } catch (e) { }
+                }
+                music.play().then(() => {
+                    musicPlaying = true;
+                    if (musicText) musicText.innerText = "Pause Music (Chitta)";
+                    if (musicIcon) musicIcon.innerText = "⏸️";
+                    if (musicBtn) musicBtn.classList.add("playing");
+                }).catch(() => { });
+            }
+            window.removeEventListener("click", resumeAudio);
+            window.removeEventListener("touchstart", resumeAudio);
+        };
+        window.addEventListener("click", resumeAudio);
+        window.addEventListener("touchstart", resumeAudio);
+    });
+}
+
+function pauseMusic() {
+    if (!music) return;
+    music.pause();
+    musicPlaying = false;
+    sessionStorage.setItem("bgMusicPlaying", "false");
+    if (musicText) musicText.innerText = "Play Music (Chitta)";
+    if (musicIcon) musicIcon.innerText = "🎵";
+    if (musicBtn) musicBtn.classList.remove("playing");
+}
 
 if (musicBtn && music) {
     musicBtn.addEventListener("click", () => {
         playSound('click');
-
         if (!musicPlaying) {
-            music.play().then(() => {
-                musicPlaying = true;
-                if (musicText) musicText.innerText = "Pause Music (Chitta)";
-                if (musicIcon) musicIcon.innerText = "⏸️";
-                musicBtn.classList.add("playing");
-            }).catch((err) => {
-                console.log("Audio play deferred or blocked:", err);
-            });
+            playMusic();
         } else {
-            music.pause();
-            musicPlaying = false;
-            if (musicText) musicText.innerText = "Play Music (Chitta)";
-            if (musicIcon) musicIcon.innerText = "🎵";
-            musicBtn.classList.remove("playing");
+            pauseMusic();
         }
     });
+    syncMusicState();
 }
 
 /* ==========================================
@@ -632,6 +682,10 @@ const giftButton = document.getElementById("giftBtn");
 if (giftButton) {
     giftButton.addEventListener("click", () => {
         playSound('click');
+        if (music && musicPlaying) {
+            sessionStorage.setItem("bgMusicTime", music.currentTime);
+            sessionStorage.setItem("bgMusicPlaying", "true");
+        }
         window.location.href = "gift.html";
     });
 }

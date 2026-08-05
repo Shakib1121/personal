@@ -150,9 +150,58 @@ style.innerHTML = `
 document.head.appendChild(style);
 
 /* ==========================================
+   PERSISTENT BACKGROUND MUSIC PLAYER
+========================================== */
+
+const giftMusic = document.getElementById("giftMusic");
+
+function initGiftMusic() {
+    if (!giftMusic) return;
+
+    giftMusic.addEventListener("timeupdate", () => {
+        if (sessionStorage.getItem("bgMusicPlaying") === "true") {
+            sessionStorage.setItem("bgMusicTime", giftMusic.currentTime);
+        }
+    });
+
+    const isSavedPlaying = sessionStorage.getItem("bgMusicPlaying") === "true";
+    const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
+
+    if (isSavedPlaying) {
+        if (savedTime > 0) {
+            try { giftMusic.currentTime = savedTime; } catch (e) { }
+        }
+        playGiftMusic();
+    }
+}
+
+function playGiftMusic() {
+    if (!giftMusic) return;
+    giftMusic.play().then(() => {
+        sessionStorage.setItem("bgMusicPlaying", "true");
+    }).catch((err) => {
+        console.log("Gift audio play deferred:", err);
+        const resumeGiftAudio = () => {
+            if (sessionStorage.getItem("bgMusicPlaying") === "true") {
+                const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
+                if (savedTime > 0 && giftMusic.currentTime === 0) {
+                    try { giftMusic.currentTime = savedTime; } catch (e) { }
+                }
+                giftMusic.play().catch(() => { });
+            }
+            window.removeEventListener("click", resumeGiftAudio);
+            window.removeEventListener("touchstart", resumeGiftAudio);
+        };
+        window.addEventListener("click", resumeGiftAudio);
+        window.addEventListener("touchstart", resumeGiftAudio);
+    });
+}
+
+/* ==========================================
    INITIALIZE
 ========================================== */
 
 window.addEventListener("load", () => {
     createStars();
+    initGiftMusic();
 });
