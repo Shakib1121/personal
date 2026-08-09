@@ -199,7 +199,7 @@ function createCursorSparkle(x, y) {
     const sparkle = document.createElement("span");
     sparkle.className = "cursor-sparkle";
 
-    const icons = ["✨", "💖", "❤️", "🌸", "⭐"];
+    const icons = ["✨", "💖", "❤️", "🌸", "⭐", "🖤"];
     sparkle.innerHTML = icons[Math.floor(Math.random() * icons.length)];
 
     sparkle.style.left = (x + (Math.random() * 16 - 8)) + "px";
@@ -224,7 +224,7 @@ function createHeart() {
     const heart = document.createElement("div");
     heart.className = "heart";
 
-    const heartIcons = ["❤️", "💖", "💕", "💗", "💓"];
+    const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🖤", "💙", "💜", "💝", "❣️"];
     heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
 
     heart.style.left = Math.random() * 100 + "vw";
