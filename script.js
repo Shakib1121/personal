@@ -1,718 +1,364 @@
-/* ==========================================
-   MOBILE DETECTION & SOUND SYNTHESIZER (Web Audio API)
-========================================== */
+/* =========================================================================
+   EDITABLE JS VARIABLES
+   ========================================================================= */
+const CONFIG = {
+  // Should music autoplay when countdown hits zero?
+  AUTOPLAY_MUSIC_AT_MIDNIGHT: false,
 
-const isMobile = window.innerWidth < 768 || ('ontouchstart' in window);
-let audioCtx = null;
+  // Target date for the birthday (Year, Month index 0-11, Day, Hour, Min, Sec)
+  // Note: October is month 9 in JS (0-indexed)
+  // Format: "Month DD, YYYY HH:MM:SS"
+  TARGET_DATE: "October 1, 2026 00:00:00",
 
-function getAudioContext() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-    return audioCtx;
-}
+  // Start date for calculating the photo blur effect
+  // Example: Blur starts heavy 7 days before, gets clearer each day
+  START_DATE: "September 28, 2026 00:00:00",
 
-function playSound(type) {
-    try {
-        const ctx = getAudioContext();
-        const now = ctx.currentTime;
+  // Max blur in pixels
+  MAX_BLUR: 25,
 
-        if (type === 'unlock') {
-            // Chime sound
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-            notes.forEach((freq, idx) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, now + idx * 0.1);
-                gain.gain.setValueAtTime(0.15, now + idx * 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.4);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(now + idx * 0.1);
-                osc.stop(now + idx * 0.1 + 0.45);
-            });
-        } else if (type === 'error') {
-            // Error buzz
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.25);
-        } else if (type === 'click') {
-            // Soft click
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, now);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.08);
-        } else if (type === 'open') {
-            // Soft sweep sound
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.exponentialRampToValueAtTime(900, now + 0.3);
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-    } catch (e) {
-        // AudioContext not allowed or failed silently
-    }
-}
+  // Typewriter message to reveal at midnight
+  TYPEWRITER_MESSAGE:
+    "Happy Birthday Oishee 💖\nThe angel\nYou are the prettiest girl ever.\n With the most beautiful eyes, Smile, Heart and everything\nAlways be the way you are\n\nWishing you a very Happy Birthday Oishee💖\n- Someone",
 
-/* ==========================================
-   PASSWORD SYSTEM & AUDIO WARMUP
-========================================== */
+  // Typewriter speed in ms per character
+  TYPEWRITER_SPEED: 80,
+};
 
-const SECRET_PASSWORD = "oishee";
+/* =========================================================================
+   DOM ELEMENTS
+   ========================================================================= */
+const startScreen = document.getElementById("start-screen");
+const startBtn = document.getElementById("start-btn");
+const mainContent = document.getElementById("main-content");
+const heartsContainer = document.getElementById("hearts-container");
+const revealPhoto = document.getElementById("reveal-photo");
+const photoHint = document.getElementById("photo-hint");
 
-function checkPassword() {
-    // Warm up audio context on user touch
-    getAudioContext();
+const countdownSection = document.getElementById("countdown-section");
+const daysEl = document.getElementById("days");
+const hoursEl = document.getElementById("hours");
+const minutesEl = document.getElementById("minutes");
+const secondsEl = document.getElementById("seconds");
 
-    const enteredPassword = document.getElementById("password").value;
-    const error = document.getElementById("error");
-    const loginCard = document.getElementById("loginCard");
+const revealSection = document.getElementById("reveal-section");
+const typewriterEl = document.getElementById("typewriter");
+const envelopeSection = document.getElementById("envelope-section");
+const envelopeBtn = document.getElementById("envelope-btn");
 
-    if (enteredPassword === SECRET_PASSWORD) {
-        playSound('unlock');
+const bgMusic = document.getElementById("birthday-song");
+const musicBtn = document.getElementById("music-btn");
+const musicIcon = document.getElementById("music-icon");
+const musicText = document.getElementById("music-text");
 
-        loginCard.classList.add("unlock-success");
+let countdownInterval;
+let isMusicPlaying = false;
+let hasRevealed = false;
 
-        setTimeout(() => {
-            document.getElementById("login-screen").style.display = "none";
-            document.getElementById("website").style.display = "block";
-            createStars();
-            createShootingStars();
-            updateCountdown();
-        }, 500);
-
-    } else {
-        playSound('error');
-        error.innerHTML = "Wrong password ❤️ Try again";
-
-        loginCard.classList.remove("shake");
-        void loginCard.offsetWidth; // Trigger reflow
-        loginCard.classList.add("shake");
-    }
-}
-
-/* ==========================================
-   STAR & SHOOTING STAR BACKGROUND
-========================================== */
-
-function createStars() {
-    const containers = [
-        document.getElementById("stars"),
-        document.getElementById("stars2"),
-        document.getElementById("stars3")
-    ];
-
-    const count = isMobile ? 35 : 90;
-
-    containers.forEach((container, index) => {
-        if (!container || container.children.length > 0) return;
-
-        for (let i = 0; i < count; i++) {
-            const star = document.createElement("div");
-            star.className = "star";
-
-            const size = Math.random() * (index + 1.5) + 1;
-            star.style.width = size + "px";
-            star.style.height = size + "px";
-            star.style.left = Math.random() * 100 + "vw";
-            star.style.top = Math.random() * 100 + "vh";
-            star.style.animationDuration = (2 + Math.random() * 5) + "s";
-            star.style.animationDelay = Math.random() * 5 + "s";
-
-            container.appendChild(star);
-        }
-    });
-}
-
-function createShootingStars() {
-    const container = document.getElementById("shooting-stars");
-    if (!container) return;
-
-    const intervalTime = isMobile ? 4000 : 2500;
-
-    setInterval(() => {
-        if (Math.random() > 0.4) {
-            const shootingStar = document.createElement("div");
-            shootingStar.className = "shooting-star";
-
-            shootingStar.style.top = Math.random() * 50 + "vh";
-            shootingStar.style.left = Math.random() * 70 + "vw";
-            shootingStar.style.animationDuration = (1.5 + Math.random() * 1.5) + "s";
-
-            container.appendChild(shootingStar);
-
-            setTimeout(() => {
-                shootingStar.remove();
-            }, 3000);
-        }
-    }, intervalTime);
-}
-
-/* ==========================================
-   CURSOR HEART TRAIL EFFECT
-========================================== */
-
-let lastTrailTime = 0;
-document.addEventListener("mousemove", (e) => {
-    const now = Date.now();
-    if (now - lastTrailTime < 70) return; // Throttle
-    lastTrailTime = now;
-
-    createCursorSparkle(e.clientX, e.clientY);
+/* =========================================================================
+   START SCREEN (Audio Init)
+   ========================================================================= */
+startBtn.addEventListener("click", () => {
+  startScreen.style.opacity = "0";
+  setTimeout(() => {
+    startScreen.style.display = "none";
+    mainContent.classList.remove("hidden");
+    initApp();
+  }, 500);
 });
 
-document.addEventListener("touchmove", (e) => {
-    if (e.touches && e.touches[0]) {
-        const touch = e.touches[0];
-        createCursorSparkle(touch.clientX, touch.clientY);
+/* =========================================================================
+   INITIALIZATION
+   ========================================================================= */
+function initApp() {
+  initBackground();
+  updateBlur();
+  checkCountdown();
+  countdownInterval = setInterval(checkCountdown, 1000);
+}
+
+/* =========================================================================
+   MAGICAL BACKGROUND LOGIC
+   ========================================================================= */
+function initBackground() {
+  createFireflies();
+  createRosePetals();
+  setInterval(createFloatingHeart, 2500);
+}
+
+function createFireflies() {
+  const container = document.getElementById("fairy-dust");
+  if (!container) return;
+  const count = window.innerWidth < 600 ? 50 : 90;
+  for (let i = 0; i < count; i++) {
+    const firefly = document.createElement("div");
+    firefly.className = "firefly";
+    const size = 3 + Math.random() * 5;
+    firefly.style.width = size + "px";
+    firefly.style.height = size + "px";
+    firefly.style.left = Math.random() * 100 + "vw";
+    firefly.style.top = Math.random() * 100 + "vh";
+    firefly.style.animationDuration = 8 + Math.random() * 10 + "s";
+    firefly.style.animationDelay = Math.random() * 5 + "s";
+    container.appendChild(firefly);
+  }
+}
+
+function createRosePetals() {
+  const container = document.getElementById("rose-petals");
+  if (!container) return;
+  setInterval(() => {
+    if (Math.random() > 0.3) {
+      const petal = document.createElement("div");
+      petal.className = "rose-petal";
+      const petals = ["🌸", "💮", "🌺", "🌼", "🌻", "🪷", "🏵️"];
+      petal.innerHTML = petals[Math.floor(Math.random() * petals.length)];
+      petal.style.left = Math.random() * 100 + "vw";
+      petal.style.animationDuration =
+        10 + Math.random() * 10 + "s, " + (2 + Math.random() * 3) + "s";
+      container.appendChild(petal);
+      setTimeout(() => petal.remove(), 25000);
     }
-}, { passive: true });
-
-function createCursorSparkle(x, y) {
-    const trailContainer = document.getElementById("cursor-trail");
-    if (!trailContainer) return;
-
-    const sparkle = document.createElement("span");
-    sparkle.className = "cursor-sparkle";
-
-    const icons = ["✨", "💖", "❤️", "🌸", "⭐", "🖤"];
-    sparkle.innerHTML = icons[Math.floor(Math.random() * icons.length)];
-
-    sparkle.style.left = (x + (Math.random() * 16 - 8)) + "px";
-    sparkle.style.top = (y + (Math.random() * 16 - 8)) + "px";
-    sparkle.style.fontSize = (12 + Math.random() * 12) + "px";
-
-    trailContainer.appendChild(sparkle);
-
-    setTimeout(() => {
-        sparkle.remove();
-    }, 1000);
+  }, 1500);
 }
 
-/* ==========================================
-   FLOATING HEART ANIMATION
-========================================== */
+function createFloatingHeart() {
+  const container = document.getElementById("floating-hearts");
+  if (!container) return;
 
-function createHeart() {
-    const heartsContainer = document.getElementById("hearts-container");
-    if (!heartsContainer) return;
+  const heart = document.createElement("div");
+  heart.className = "bg-heart";
 
-    const heart = document.createElement("div");
-    heart.className = "heart";
+  const icons = ["💖", "💕", "🤍", "✨", "💓", "💗"];
+  heart.innerHTML = icons[Math.floor(Math.random() * icons.length)];
 
-    const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🖤", "💙", "💜", "💝", "❣️"];
-    heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+  heart.style.left = Math.random() * 100 + "vw";
+  heart.style.fontSize = 15 + Math.random() * 20 + "px";
+  heart.style.animationDuration = 8 + Math.random() * 7 + "s";
 
-    heart.style.left = Math.random() * 100 + "vw";
-    heart.style.fontSize = (15 + Math.random() * 30) + "px";
-    heart.style.animationDuration = (6 + Math.random() * 6) + "s";
+  container.appendChild(heart);
 
-    heartsContainer.appendChild(heart);
-
-    setTimeout(() => {
-        heart.remove();
-    }, 12000);
+  setTimeout(() => heart.remove(), 15000);
 }
 
-setInterval(createHeart, isMobile ? 1200 : 700);
+/* =========================================================================
+   PHOTO BLUR LOGIC
+   ========================================================================= */
+function updateBlur() {
+  const now = new Date().getTime();
+  const target = new Date(CONFIG.TARGET_DATE).getTime();
+  const start = new Date(CONFIG.START_DATE).getTime();
 
-/* ==========================================
-   MUSIC TOGGLE PLAYER (PERSISTENT ACROSS PAGES)
-========================================== */
+  if (now >= target) {
+    revealPhoto.style.filter = "blur(0px)";
+    photoHint.innerText = "Here you are! ✨";
+    return;
+  }
 
-const music = document.getElementById("music");
-const musicBtn = document.getElementById("musicBtn");
-const musicText = document.getElementById("musicText");
-const musicIcon = document.getElementById("musicIcon");
+  if (now <= start) {
+    revealPhoto.style.filter = `blur(${CONFIG.MAX_BLUR}px)`;
+    return;
+  }
 
-let musicPlaying = false;
+  // Calculate percentage between start and target
+  const totalDuration = target - start;
+  const elapsed = now - start;
+  const progress = Math.min(Math.max(elapsed / totalDuration, 0), 1);
 
-function syncMusicState() {
-    if (!music) return;
-
-    music.addEventListener("timeupdate", () => {
-        if (musicPlaying) {
-            sessionStorage.setItem("bgMusicTime", music.currentTime);
-        }
-    });
-
-    const isSavedPlaying = sessionStorage.getItem("bgMusicPlaying") === "true";
-    const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
-
-    if (isSavedPlaying) {
-        if (savedTime > 0) {
-            try { music.currentTime = savedTime; } catch (e) { }
-        }
-        playMusic();
-    }
+  // Invert progress for blur (100% progress = 0 blur)
+  const currentBlur = CONFIG.MAX_BLUR * (1 - progress);
+  revealPhoto.style.filter = `blur(${currentBlur}px)`;
 }
 
-function playMusic() {
-    if (!music) return;
-    music.play().then(() => {
-        musicPlaying = true;
-        sessionStorage.setItem("bgMusicPlaying", "true");
-        if (musicText) musicText.innerText = "Pause Music (Chitta)";
-        if (musicIcon) musicIcon.innerText = "⏸️";
-        if (musicBtn) musicBtn.classList.add("playing");
-    }).catch((err) => {
-        console.log("Audio play deferred or blocked:", err);
-        const resumeAudio = () => {
-            if (sessionStorage.getItem("bgMusicPlaying") === "true" && !musicPlaying) {
-                const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
-                if (savedTime > 0 && music.currentTime === 0) {
-                    try { music.currentTime = savedTime; } catch (e) { }
-                }
-                music.play().then(() => {
-                    musicPlaying = true;
-                    if (musicText) musicText.innerText = "Pause Music (Chitta)";
-                    if (musicIcon) musicIcon.innerText = "⏸️";
-                    if (musicBtn) musicBtn.classList.add("playing");
-                }).catch(() => { });
-            }
-            window.removeEventListener("click", resumeAudio);
-            window.removeEventListener("touchstart", resumeAudio);
-        };
-        window.addEventListener("click", resumeAudio);
-        window.addEventListener("touchstart", resumeAudio);
-    });
-}
+/* =========================================================================
+   COUNTDOWN LOGIC
+   ========================================================================= */
+function checkCountdown() {
+  const now = new Date().getTime();
+  const target = new Date(CONFIG.TARGET_DATE).getTime();
+  const distance = target - now;
 
-function pauseMusic() {
-    if (!music) return;
-    music.pause();
-    musicPlaying = false;
-    sessionStorage.setItem("bgMusicPlaying", "false");
-    if (musicText) musicText.innerText = "Play Music (Chitta)";
-    if (musicIcon) musicIcon.innerText = "🎵";
-    if (musicBtn) musicBtn.classList.remove("playing");
-}
+  if (distance <= 0) {
+    // Midnight reached!
+    clearInterval(countdownInterval);
 
-if (musicBtn && music) {
-    musicBtn.addEventListener("click", () => {
-        playSound('click');
-        if (!musicPlaying) {
-            playMusic();
-        } else {
-            pauseMusic();
-        }
-    });
-    syncMusicState();
-}
+    daysEl.innerText = "00";
+    hoursEl.innerText = "00";
+    minutesEl.innerText = "00";
+    secondsEl.innerText = "00";
 
-/* ==========================================
-   ANNIVERSARY COUNTDOWN
-========================================== */
-
-const anniversaryDate = new Date("August 10, 2026 00:00:00").getTime();
-const countdownTimer = setInterval(updateCountdown, 1000);
-
-function updateCountdown() {
-    const now = new Date().getTime();
-    const distance = anniversaryDate - now;
-
-    if (distance <= 0) {
-        clearInterval(countdownTimer);
-        countdownFinished();
-        return;
-    }
-
-    // Ensure ONLY countdown is visible before target date
-    const countdownSection = document.getElementById("countdown-section");
-    if (countdownSection) countdownSection.style.display = "flex";
-
-    const heroSection = document.querySelector(".hero");
-    if (heroSection) heroSection.style.display = "none";
-
+    triggerMidnightReveal();
+  } else {
+    // Update countdown UI
     const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const hours = Math.floor(
+      (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+    );
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    const dEl = document.getElementById("days");
-    const hEl = document.getElementById("hours");
-    const mEl = document.getElementById("minutes");
-    const sEl = document.getElementById("seconds");
-
-    if (dEl) dEl.innerHTML = days;
-    if (hEl) hEl.innerHTML = hours;
-    if (mEl) mEl.innerHTML = minutes;
-    if (sEl) sEl.innerHTML = seconds;
+    daysEl.innerText = days.toString().padStart(2, "0");
+    hoursEl.innerText = hours.toString().padStart(2, "0");
+    minutesEl.innerText = minutes.toString().padStart(2, "0");
+    secondsEl.innerText = seconds.toString().padStart(2, "0");
+  }
 }
 
-function countdownFinished() {
-    // Keep countdown section visible
-    const countdownSection = document.getElementById("countdown-section");
-    if (countdownSection) {
-        countdownSection.style.display = "block";
-        countdownSection.style.minHeight = "auto";
-    }
+/* =========================================================================
+   MIDNIGHT REVEAL
+   ========================================================================= */
+function triggerMidnightReveal() {
+  if (hasRevealed) return;
+  hasRevealed = true;
 
-    const dEl = document.getElementById("days");
-    const hEl = document.getElementById("hours");
-    const mEl = document.getElementById("minutes");
-    const sEl = document.getElementById("seconds");
+  // Update Photo
+  revealPhoto.style.filter = "blur(0px)";
+  photoHint.innerText = "Happy Birthday Oishe! ✨";
 
-    if (dEl) dEl.innerHTML = "00";
-    if (hEl) hEl.innerHTML = "00";
-    if (mEl) mEl.innerHTML = "00";
-    if (sEl) sEl.innerHTML = "00";
+  // Hide Countdown, Show Reveal
+  countdownSection.classList.add("hidden");
+  revealSection.classList.remove("hidden");
 
-    // Reveal hero section (Anniversary title & text)
-    const heroSection = document.querySelector(".hero");
-    if (heroSection) {
-        heroSection.style.display = "flex";
-        heroSection.classList.add("fade-in");
-    }
+  // Show Music Widget
+  const musicWidget = document.getElementById("music-widget");
+  if (musicWidget) musicWidget.classList.remove("hidden");
 
-    // Reveal celebration message
-    const celebration = document.getElementById("celebration");
-    if (celebration) celebration.style.display = "block";
+  // Play Music
+  if (CONFIG.AUTOPLAY_MUSIC_AT_MIDNIGHT && !isMusicPlaying) {
+    toggleMusic();
+  }
 
-    revealSections();
-    startTypewriter();
-    launchConfetti();
+  // Confetti
+  launchConfetti();
+
+  // Typewriter
+  startTypewriter(CONFIG.TYPEWRITER_MESSAGE, 0, () => {
+    // Show Envelope after typewriter finishes
+    setTimeout(() => {
+      envelopeSection.classList.remove("hidden");
+    }, 1000);
+  });
 }
-
-/* ==========================================
-   CONFETTI EFFECT
-========================================== */
 
 function launchConfetti() {
-    if (typeof confetti !== 'function') return;
+  if (typeof confetti === "function") {
+    const duration = 5 * 1000;
+    const end = Date.now() + duration;
 
-    confetti({
-        particleCount: isMobile ? 100 : 200,
-        spread: 160,
-        startVelocity: 45,
-        origin: { y: 0.6 }
-    });
+    (function frame() {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ["#ff7eb3", "#ff758c", "#ffffff"],
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ["#ff7eb3", "#ff758c", "#ffffff"],
+      });
 
-    let duration = 4000;
-    let end = Date.now() + duration;
-
-    let interval = setInterval(() => {
-        if (Date.now() > end) {
-            clearInterval(interval);
-            return;
-        }
-
-        confetti({
-            particleCount: isMobile ? 20 : 40,
-            spread: 100,
-            origin: { x: Math.random(), y: Math.random() - 0.2 }
-        });
-    }, 350);
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+  }
 }
 
-/* ==========================================
-   TYPEWRITER MESSAGE
-========================================== */
-
-const loveMessage = `Happy Anniversary Oishe❤️
-Thank you for filling my life with love and happiness. 
-You are really special for me. Please be the way you are. 
-And yes, keep smiling. I am really obsessed with your eyes ❤️
--Shakib❤️`;
-let textIndex = 0;
-
-function startTypewriter() {
-    const element = document.getElementById("typewriter");
-    if (!element) return;
-
-    element.innerHTML = "";
-    textIndex = 0;
-
-    function write() {
-        if (textIndex < loveMessage.length) {
-            const char = loveMessage.charAt(textIndex);
-            element.innerHTML += (char === '\n') ? '<br>' : char;
-            textIndex++;
-            setTimeout(write, 45);
-        }
-    }
-    write();
+function startTypewriter(text, index, callback) {
+  if (index < text.length) {
+    typewriterEl.innerHTML +=
+      text.charAt(index) === "\n" ? "<br>" : text.charAt(index);
+    setTimeout(
+      () => startTypewriter(text, index + 1, callback),
+      CONFIG.TYPEWRITER_SPEED,
+    );
+  } else {
+    if (callback) callback();
+  }
 }
 
-/* ==========================================
-   REVEAL SECTIONS & SCROLL ANIMATIONS
-========================================== */
+/* =========================================================================
+   INTERACTIVE HEART TRAIL
+   ========================================================================= */
+let lastTrailTime = 0;
 
-function revealSections() {
-    const sections = [
-        ".slideshow-section",
-        ".timeline-section",
-        ".letter-section",
-        ".rose-section",
-        ".gift-section"
-    ];
+function createHeartTrail(x, y) {
+  const now = Date.now();
+  if (now - lastTrailTime < 50) return; // Throttle
+  lastTrailTime = now;
 
-    sections.forEach(section => {
-        const element = document.querySelector(section);
-        if (element) {
-            element.style.display = "block";
-            element.classList.add("fade-in");
-        }
-    });
+  const heart = document.createElement("div");
+  heart.className = "trail-heart";
+
+  const hearts = ["❤️", "💙", "💜", "💛", "💚", "💖", "🤍", "🩷", "🩵", "🤎"];
+  heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+
+  // Randomize slight offset
+  const offsetX = (Math.random() - 0.5) * 20;
+  const offsetY = (Math.random() - 0.5) * 20;
+
+  heart.style.left = x + offsetX + "px";
+  heart.style.top = y + offsetY + "px";
+
+  heartsContainer.appendChild(heart);
+
+  setTimeout(() => {
+    heart.remove();
+  }, 1000);
 }
 
-/* ==========================================
-   INTERACTIVE PHOTO SLIDESHOW & TOUCH SWIPE
-========================================== */
-
-const photosData = [
-    { src: "images/photo (1).jpg", caption: "❤️" },
-    { src: "images/photo (2).jpg", caption: "💖" },
-    { src: "images/photo (3).jpg", caption: "💕" },
-    { src: "images/photo (4).jpg", caption: "💗" },
-    { src: "images/photo (5).jpg", caption: "💓" },
-    { src: "images/photo (6).jpg", caption: "💞" },
-    { src: "images/photo (7).jpg", caption: "💘" },
-    { src: "images/photo (8).jpg", caption: "💌" },
-    { src: "images/photo (9).jpg", caption: "❣️" },
-    { src: "images/photo (10).jpg", caption: "💜" },
-    { src: "images/photo (11).jpg", caption: "💙" },
-    { src: "images/photo (12).jpg", caption: "💝" }
-];
-
-let currentPhotoIndex = 0;
-let slideshowInterval = null;
-
-const slideImg = document.getElementById("slide");
-const slideCaption = document.getElementById("slideCaption");
-const prevBtn = document.getElementById("prevSlide");
-const nextBtn = document.getElementById("nextSlide");
-const dotsContainer = document.getElementById("slideDots");
-
-function initSlideshow() {
-    if (!slideImg || !dotsContainer) return;
-
-    // Create pagination dots
-    dotsContainer.innerHTML = "";
-    photosData.forEach((_, idx) => {
-        const dot = document.createElement("span");
-        dot.className = "dot" + (idx === 0 ? " active" : "");
-        dot.addEventListener("click", () => goToSlide(idx));
-        dotsContainer.appendChild(dot);
-    });
-
-    if (prevBtn) prevBtn.addEventListener("click", () => { playSound('click'); prevSlide(); });
-    if (nextBtn) nextBtn.addEventListener("click", () => { playSound('click'); nextSlide(); });
-
-    // Touch Swipe Gestures for Mobile
-    let touchStartX = 0;
-    let touchEndX = 0;
-    const slideshowWrapper = document.querySelector(".slideshow-container");
-
-    if (slideshowWrapper) {
-        slideshowWrapper.addEventListener("touchstart", (e) => {
-            if (e.changedTouches && e.changedTouches[0]) {
-                touchStartX = e.changedTouches[0].screenX;
-            }
-        }, { passive: true });
-
-        slideshowWrapper.addEventListener("touchend", (e) => {
-            if (e.changedTouches && e.changedTouches[0]) {
-                touchEndX = e.changedTouches[0].screenX;
-                const swipeDistance = touchEndX - touchStartX;
-                if (Math.abs(swipeDistance) > 40) {
-                    playSound('click');
-                    if (swipeDistance < 0) {
-                        nextSlide();
-                    } else {
-                        prevSlide();
-                    }
-                }
-            }
-        }, { passive: true });
-    }
-
-    startAutoSlide();
-}
-
-function updateSlideDisplay() {
-    if (!slideImg) return;
-
-    slideImg.style.opacity = "0";
-
-    setTimeout(() => {
-        slideImg.src = photosData[currentPhotoIndex].src;
-        if (slideCaption) slideCaption.innerHTML = photosData[currentPhotoIndex].caption;
-
-        slideImg.style.opacity = "1";
-
-        // Update dots
-        if (dotsContainer) {
-            const dots = dotsContainer.querySelectorAll(".dot");
-            dots.forEach((dot, idx) => {
-                dot.classList.toggle("active", idx === currentPhotoIndex);
-            });
-        }
-    }, 300);
-}
-
-function nextSlide() {
-    currentPhotoIndex = (currentPhotoIndex + 1) % photosData.length;
-    updateSlideDisplay();
-}
-
-function prevSlide() {
-    currentPhotoIndex = (currentPhotoIndex - 1 + photosData.length) % photosData.length;
-    updateSlideDisplay();
-}
-
-function goToSlide(index) {
-    playSound('click');
-    currentPhotoIndex = index;
-    updateSlideDisplay();
-}
-
-function startAutoSlide() {
-    stopAutoSlide();
-    slideshowInterval = setInterval(nextSlide, 4500);
-}
-
-function stopAutoSlide() {
-    if (slideshowInterval) clearInterval(slideshowInterval);
-}
-
-// Pause slideshow on hover
-const slideshowWrapper = document.querySelector(".slideshow-container");
-if (slideshowWrapper) {
-    slideshowWrapper.addEventListener("mouseenter", stopAutoSlide);
-    slideshowWrapper.addEventListener("mouseleave", startAutoSlide);
-}
-
-/* ==========================================
-   3D ENVELOPE & LETTER OPENING
-========================================== */
-
-const envelope = document.getElementById("envelope");
-const letter = document.getElementById("letter");
-
-if (envelope) {
-    envelope.addEventListener("click", () => {
-        playSound('open');
-        envelope.classList.toggle("open");
-
-        setTimeout(() => {
-            if (letter) {
-                letter.classList.add("letter-visible");
-                letter.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'start' : 'center' });
-            }
-        }, 400);
-    });
-}
-
-/* ==========================================
-   ROSE BLOOM & PETAL BURST
-========================================== */
-
-const rose = document.getElementById("rose");
-const roseText = document.getElementById("roseText");
-const petalBurst = document.getElementById("petal-burst");
-
-if (rose) {
-    rose.addEventListener("click", () => {
-        playSound('open');
-
-        rose.classList.add("bloom");
-        rose.innerHTML = "🌺";
-
-        if (roseText) {
-            roseText.innerHTML = "You make my life bloom every single day ❤️";
-            roseText.classList.add("highlight-text");
-        }
-
-        createPetalBurst();
-    });
-}
-
-function createPetalBurst() {
-    if (!petalBurst) return;
-
-    const count = isMobile ? 16 : 30;
-    const petals = ["🌸", "🌹", "💖", "✨"];
-    for (let i = 0; i < count; i++) {
-        const petal = document.createElement("span");
-        petal.className = "falling-petal";
-        petal.innerHTML = petals[Math.floor(Math.random() * petals.length)];
-
-        petal.style.left = (Math.random() * 100) + "%";
-        petal.style.animationDuration = (3 + Math.random() * 4) + "s";
-        petal.style.fontSize = (16 + Math.random() * 20) + "px";
-
-        petalBurst.appendChild(petal);
-
-        setTimeout(() => {
-            petal.remove();
-        }, 7000);
-    }
-}
-
-/* ==========================================
-   GIFT BUTTON ROUTING
-========================================== */
-
-const giftButton = document.getElementById("giftBtn");
-if (giftButton) {
-    giftButton.addEventListener("click", () => {
-        playSound('click');
-        if (music && musicPlaying) {
-            sessionStorage.setItem("bgMusicTime", music.currentTime);
-            sessionStorage.setItem("bgMusicPlaying", "true");
-        }
-        window.location.href = "gift.html";
-    });
-}
-
-/* ==========================================
-   SMOOTH SCROLL INTERSECTION OBSERVER
-========================================== */
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add("fade-in");
-        }
-    });
-}, { threshold: 0.15 });
-
-document.querySelectorAll("section").forEach(section => {
-    observer.observe(section);
+document.addEventListener("mousemove", (e) => {
+  createHeartTrail(e.clientX, e.clientY);
 });
 
-/* ==========================================
-   INITIALIZE ON PAGE LOAD
-========================================== */
+document.addEventListener(
+  "touchmove",
+  (e) => {
+    if (e.touches.length > 0) {
+      createHeartTrail(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  },
+  { passive: true },
+);
 
-window.addEventListener("load", () => {
-    createStars();
-    createShootingStars();
-    initSlideshow();
-    updateCountdown();
+/* =========================================================================
+   MUSIC CONTROL
+   ========================================================================= */
+function toggleMusic() {
+  if (isMusicPlaying) {
+    bgMusic.pause();
+    isMusicPlaying = false;
+    musicIcon.innerText = "🎵";
+    musicText.innerText = "Play Music";
+    musicBtn.classList.remove("playing");
+  } else {
+    bgMusic.volume = 0.5;
+    bgMusic
+      .play()
+      .then(() => {
+        isMusicPlaying = true;
+        musicIcon.innerText = "⏸️";
+        musicText.innerText = "Pause Music";
+        musicBtn.classList.add("playing");
+      })
+      .catch((e) => console.log("Audio play blocked", e));
+  }
+}
+
+if (musicBtn) {
+  musicBtn.addEventListener("click", toggleMusic);
+}
+
+/* =========================================================================
+   ENVELOPE ROUTING
+   ========================================================================= */
+envelopeBtn.addEventListener("click", () => {
+  // Add a tiny delay to allow animation
+  setTimeout(() => {
+    window.location.href = "gift.html";
+  }, 600);
 });

@@ -1,306 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#03061a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>🖤Surprise!🖤</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
+    />
+    <meta name="theme-color" content="#14000c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Happy Birthday! 💖</title>
 
     <!-- Social Media Link Preview (Prevents Text Spoilers on Instagram, WhatsApp, etc.) -->
-    <meta name="description" content="A special countdown awaits... ⏳❤️">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="🖤Surprise!🖤">
-    <meta property="og:description" content="A special countdown awaits... ⏳❤️">
-    <meta property="og:image" content="images/photo (10).jpg">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="🖤Surprise!🖤">
-    <meta name="twitter:description" content="A special countdown awaits... ⏳❤️">
-    <meta name="twitter:image" content="images/photo (10).jpg">
-
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="For Oishee" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Something Special 💖" />
+    <meta property="og:description" content="For Oishee" />
+    <meta property="og:image" content="images/photo.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Something Special 💖" />
+    <meta name="twitter:description" content="For Oishee" />
+    <meta name="twitter:image" content="images/photo.jpg" />
 
     <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;500;700&display=swap"
-        rel="stylesheet">
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-</head>
 
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Magical Background Elements -->
+    <div id="fairy-dust"></div>
+    <div id="rose-petals"></div>
+    <div id="floating-hearts"></div>
 
-    <!-- ========================= -->
-    <!-- STAR & PARTICLE BACKGROUND -->
-    <!-- ========================= -->
+    <!-- Audio Autoplay Workaround -->
+    <div id="start-screen">
+      <div class="start-card">
+        <h1>Ready?</h1>
+        <button id="start-btn">Enter 🤍</button>
+      </div>
+    </div>
 
-    <div id="stars"></div>
-    <div id="stars2"></div>
-    <div id="stars3"></div>
-    <div id="shooting-stars"></div>
-
-    <!-- ========================= -->
-    <!-- FLOATING HEARTS & TRAIL -->
-    <!-- ========================= -->
-
+    <!-- Heart Trail Container -->
     <div id="hearts-container"></div>
-    <div id="cursor-trail"></div>
 
-    <!-- ========================= -->
-    <!-- PASSWORD SCREEN -->
-    <!-- ========================= -->
-
-    <div id="login-screen">
-
-        <div class="login-card" id="loginCard">
-
-            <h1>For a Special Person<br>🖤</h1>
-
-            <p>
-                Only one person in the world knows the password...
-            </p>
-
-            <input type="password" id="password" placeholder="Enter Secret Password"
-                onkeyup="if(event.key==='Enter') checkPassword()">
-
-            <button onclick="checkPassword()" id="unlockBtn">
-                Unlock
-            </button>
-
-            <p id="error"></p>
-
+    <div id="main-content" class="hidden">
+      <!-- Photo Reveal Section -->
+      <section class="photo-section">
+        <div class="photo-frame">
+          <!-- Place your photo in the "images" folder and update the name here -->
+          <img id="reveal-photo" src="images/photo.jpg" alt="Special Photo" />
         </div>
+        <p id="photo-hint">Becoming clearer every day...</p>
+      </section>
 
+      <!-- Countdown Section -->
+      <section id="countdown-section">
+        <h2 class="countdown-title">Countdown to a special day</h2>
+        <div id="countdown">
+          <div class="time-box">
+            <span id="days">00</span>
+            <small>Days</small>
+          </div>
+          <div class="time-box">
+            <span id="hours">00</span>
+            <small>Hours</small>
+          </div>
+          <div class="time-box">
+            <span id="minutes">00</span>
+            <small>Minutes</small>
+          </div>
+          <div class="time-box">
+            <span id="seconds">00</span>
+            <small>Seconds</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Midnight Reveal: Typewriter -->
+      <section id="reveal-section" class="hidden">
+        <h1 class="happy-birthday-title">
+          Happy Birthday The Brown Eyed Angel! 💝
+        </h1>
+        <p id="typewriter"></p>
+      </section>
+
+      <!-- The Envelope to the Next Page -->
+      <section id="envelope-section" class="hidden">
+        <div class="envelope" id="envelope-btn">
+          <div class="flap"></div>
+          <div class="pocket"></div>
+          <div class="seal">💌</div>
+          <p class="hint">Tap to open your gift!</p>
+        </div>
+      </section>
+
+      <!-- Music Control -->
+      <div id="music-widget" class="hidden">
+        <button id="music-btn" class="music-btn">
+          <span id="music-icon">🎵</span>
+          <span id="music-text">Play Music</span>
+        </button>
+      </div>
+
+      <!-- Hidden Audio Element -->
+      <audio id="birthday-song" loop>
+        <!-- Place your uploaded track in the "music" folder and update the name here -->
+        <source src="music/track.mp3" type="audio/mpeg" />
+      </audio>
     </div>
 
-    <!-- ========================= -->
-    <!-- MAIN WEBSITE -->
-    <!-- ========================= -->
-
-    <div id="website">
-
-        <!-- HERO -->
-
-        <section class="hero">
-
-            <h1 class="glow-title">Happy Anniversary Oishe<br>❤️</h1>
-
-            <p>
-                1 bochor hoye gesee!!
-            </p>
-
-            <div class="music-widget">
-                <button id="musicBtn" class="music-btn" aria-label="Toggle Background Music">
-                    <span id="musicIcon">🎵</span>
-                    <span id="musicText">Play Music (Chitta)</span>
-                </button>
-            </div>
-
-            <audio id="music" loop preload="auto">
-                <source src="music/our-song.MP3" type="audio/mpeg">
-                <source src="music/our-song.mp3" type="audio/mpeg">
-            </audio>
-
-        </section>
-
-        <!-- COUNTDOWN -->
-
-        <section id="countdown-section">
-
-            <h2>Countdown to something special! 🖤</h2>
-
-            <div id="countdown">
-                <div class="countdown-single-box">
-                    <div class="time-unit">
-                        <span id="days">0</span>
-                        <small>Days</small>
-                    </div>
-                    <span class="time-colon">:</span>
-                    <div class="time-unit">
-                        <span id="hours">0</span>
-                        <small>Hours</small>
-                    </div>
-                    <span class="time-colon">:</span>
-                    <div class="time-unit">
-                        <span id="minutes">0</span>
-                        <small>Minutes</small>
-                    </div>
-                    <span class="time-colon">:</span>
-                    <div class="time-unit">
-                        <span id="seconds">0</span>
-                        <small>Seconds</small>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- ANNIVERSARY MESSAGE -->
-
-        <section id="celebration">
-
-            <h2 id="typewriter"></h2>
-
-        </section>
-
-        <!-- PHOTO SLIDESHOW -->
-
-        <section class="slideshow-section">
-
-            <h2>Photo Gallery of The Cutest Girl</h2>
-
-            <div class="slideshow-container">
-                <button class="slide-nav prev" id="prevSlide" aria-label="Previous Slide">❮</button>
-
-                <div class="slideshow">
-                    <img id="slide" src="images/photo (1).jpg" alt="Our Memories">
-                    <div id="slideCaption" class="slide-caption">Our Special Memories ❤️</div>
-                </div>
-
-                <button class="slide-nav next" id="nextSlide" aria-label="Next Slide">❯</button>
-
-                <div id="slideDots" class="slide-dots"></div>
-            </div>
-
-        </section>
-
-        <!-- TIMELINE -->
-
-        <section class="timeline-section">
-
-            <h2>📅 Our Journey 🖤</h2>
-
-            <div class="timeline">
-
-                <div class="event">
-                    <h3>🖤 First Interaction</h3>
-                    <p>13 June, 2025</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 First Confession</h3>
-                    <p>8 August, 2025</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 Acceptance</h3>
-                    <p>10 August, 2025</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 First Meeting</h3>
-                    <p>27 August, 2025</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 First Date</h3>
-                    <p>Mystery</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 First Birthday</h3>
-                    <p>1 October, 2025</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 First Anniversary</h3>
-                    <p>10 August, 2026</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 First Trip Together</h3>
-                    <p>Manifesting</p>
-                </div>
-
-                <div class="event">
-                    <h3>🖤 Life Partner</h3>
-                    <p>Forever & Always</p>
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ENVELOPE -->
-
-        <section class="letter-section">
-
-            <h2>💌 A Letter For You</h2>
-
-            <div class="envelope-wrapper" id="envelopeWrapper">
-                <div class="envelope-box" id="envelope">
-                    <div class="envelope-flap"></div>
-                    <div class="envelope-pocket"></div>
-                    <div class="envelope-seal">💖</div>
-                    <div class="envelope-hint">Letter a tap koro! 💌</div>
-                </div>
-            </div>
-
-            <div id="letter" class="letter-paper">
-
-                <h2 class="letter-title">My Love ❤️</h2>
-
-                <p class="letter-body">
-                    Thank you for tolerating me for 1 year
-                    <br><br>
-                    Thank you for loving me even more than I love you
-                    <br><br>
-                    Thank you for understanding me
-                    <br><br>
-                    Thank you for supporting me
-                    <br><br>
-                    Thank you for everything 💙
-                    <br><br>
-                    Happy Anniversary Oishe❤️
-                    <br><br>
-                    I love you Pakhi 🖤
-                </p>
-
-                <div class="letter-title">Forever & Always Yours 💕</div>
-                <div class="letter-signature">- Shakib ❤️</div>
-
-            </div>
-
-        </section>
-
-        <!-- ROSE -->
-
-        <section class="rose-section">
-
-            <h2> 🌹 Ekta Surprise</h2>
-
-            <div class="rose-wrapper">
-                <div id="rose" class="rose-element">
-                    🌹
-                </div>
-                <div id="petal-burst"></div>
-            </div>
-
-            <p id="roseText">
-                Click the rose ❤️
-            </p>
-
-        </section>
-
-        <!-- GIFT -->
-
-        <section class="gift-section">
-
-            <button id="giftBtn" class="pulse-gift-btn">
-
-                🎁 Open Your Surprise
-
-            </button>
-
-        </section>
-
-    </div>
+    <footer>
+      <p>Created with 🖤 by Dark</p>
+    </footer>
 
     <script src="script.js"></script>
-
-</body>
-
+  </body>
 </html>

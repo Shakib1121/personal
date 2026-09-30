@@ -1,207 +1,292 @@
-/* ==========================================
-   STAR BACKGROUND & CURSOR SPARKLES
-========================================== */
+/* =========================================================================
+   EDITABLE JS VARIABLES
+   ========================================================================= */
+const CONFIG = {
+  // Password required to unlock the gift
+  SECRET_PASSWORD: "pakhi",
 
-const isMobileGift = window.innerWidth < 768 || ('ontouchstart' in window);
+  // Scratch cards data: label shown above, and letter/word hidden beneath
+  SCRATCH_ITEMS: [
+    { label: "❤️", hidden: "You" },
+    { label: "💙", hidden: "Are" },
+    { label: "💜", hidden: "The" },
+    { label: "🖤", hidden: "Best" },
+    { label: "💗", hidden: "Cutest" },
+    { label: "💝", hidden: "Sweetest" },
+    { label: "💛", hidden: "Amr jaan" },
+    { label: "🩵", hidden: "Amr pookie" },
+    { label: "🧡", hidden: "Amr pakhi" },
+    { label: "🤎", hidden: "Amr bou" },
+    { label: "💚", hidden: "Amr valobasha" },
+    { label: "🤍", hidden: "Amr boujaan" },
+    { label: "🩷", hidden: "I Love You Jaan" },
+    { label: "💞", hidden: "I Love You Bou" },
+    { label: "💓", hidden: "I Love You Pookie" },
+    { label: "🖤", hidden: "I Love You Pakhi" },
+    { label: "🖤", hidden: "I Love You Boujaan" },
+  ],
 
-function createStars() {
-    const container = document.getElementById("stars");
-    if (!container) return;
+  // Scratch brush size
+  BRUSH_SIZE: 25,
+};
 
-    const count = isMobileGift ? 45 : 220;
+/* =========================================================================
+   DOM ELEMENTS
+   ========================================================================= */
+const passwordScreen = document.getElementById("password-screen");
+const passwordCard = document.querySelector(".password-card");
+const passwordInput = document.getElementById("password-input");
+const unlockBtn = document.getElementById("unlock-btn");
+const errorMsg = document.getElementById("error-msg");
 
-    for (let i = 0; i < count; i++) {
-        const star = document.createElement("div");
-        star.className = "star";
+const giftContent = document.getElementById("gift-content");
+const scratchContainer = document.getElementById("scratch-container");
 
-        const size = Math.random() * 3 + 1;
-        star.style.width = size + "px";
-        star.style.height = size + "px";
-        star.style.left = Math.random() * 100 + "vw";
-        star.style.top = Math.random() * 100 + "vh";
-        star.style.animationDuration = (2 + Math.random() * 5) + "s";
-        star.style.animationDelay = Math.random() * 5 + "s";
-
-        container.appendChild(star);
-    }
+/* =========================================================================
+   MAGICAL BACKGROUND LOGIC
+   ========================================================================= */
+function initBackground() {
+  createFireflies();
+  createRosePetals();
+  setInterval(createFloatingHeart, 2500);
 }
 
-/* ==========================================
-   CURSOR SPARKLE TRAIL
-========================================== */
+function createFireflies() {
+  const container = document.getElementById("fairy-dust");
+  if (!container) return;
+  const count = window.innerWidth < 600 ? 50 : 90;
+  for (let i = 0; i < count; i++) {
+    const firefly = document.createElement("div");
+    firefly.className = "firefly";
+    const size = 3 + Math.random() * 5;
+    firefly.style.width = size + "px";
+    firefly.style.height = size + "px";
+    firefly.style.left = Math.random() * 100 + "vw";
+    firefly.style.top = Math.random() * 100 + "vh";
+    firefly.style.animationDuration = 8 + Math.random() * 10 + "s";
+    firefly.style.animationDelay = Math.random() * 5 + "s";
+    container.appendChild(firefly);
+  }
+}
 
-let lastGiftTrail = 0;
-document.addEventListener("mousemove", (e) => {
-    const now = Date.now();
-    if (now - lastGiftTrail < 80) return;
-    lastGiftTrail = now;
+function createRosePetals() {
+  const container = document.getElementById("rose-petals");
+  if (!container) return;
+  setInterval(() => {
+    if (Math.random() > 0.3) {
+      const petal = document.createElement("div");
+      petal.className = "rose-petal";
+      const petals = ["🌸", "💮", "🌺", "🌼", "🌻", "🪷", "🏵️"];
+      petal.innerHTML = petals[Math.floor(Math.random() * petals.length)];
+      petal.style.left = Math.random() * 100 + "vw";
+      petal.style.animationDuration =
+        10 + Math.random() * 10 + "s, " + (2 + Math.random() * 3) + "s";
+      container.appendChild(petal);
+      setTimeout(() => petal.remove(), 25000);
+    }
+  }, 1500);
+}
 
-    const container = document.getElementById("cursor-trail");
-    if (!container) return;
+function createFloatingHeart() {
+  const container = document.getElementById("floating-hearts");
+  if (!container) return;
 
-    const sparkle = document.createElement("span");
-    sparkle.className = "cursor-sparkle";
-    const icons = ["✨", "🎁", "💖", "❤️", "⭐"];
-    sparkle.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+  const heart = document.createElement("div");
+  heart.className = "bg-heart";
 
-    sparkle.style.left = e.clientX + "px";
-    sparkle.style.top = e.clientY + "px";
+  const icons = ["💖", "💕", "🤍", "✨", "💓", "💗"];
+  heart.innerHTML = icons[Math.floor(Math.random() * icons.length)];
 
-    container.appendChild(sparkle);
+  heart.style.left = Math.random() * 100 + "vw";
+  heart.style.fontSize = 15 + Math.random() * 20 + "px";
+  heart.style.animationDuration = 8 + Math.random() * 7 + "s";
 
-    setTimeout(() => sparkle.remove(), 1000);
+  container.appendChild(heart);
+
+  setTimeout(() => heart.remove(), 15000);
+}
+
+initBackground();
+
+/* =========================================================================
+   PASSWORD LOGIC
+   ========================================================================= */
+unlockBtn.addEventListener("click", checkPassword);
+passwordInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") checkPassword();
 });
 
-/* ==========================================
-   GIFT OPENING & CONFETTI
-========================================== */
+function checkPassword() {
+  const entered = passwordInput.value.trim().toLowerCase();
 
-const giftBox = document.getElementById("giftBox");
-const giftBoxSection = document.getElementById("giftBoxSection");
-const surprise = document.getElementById("surprise");
-
-if (giftBox) {
-    giftBox.addEventListener("click", () => {
-        // Animation
-        giftBox.style.transform = "scale(0) rotate(720deg)";
-        giftBox.style.opacity = "0";
-
-        // Confetti burst
-        if (typeof confetti === 'function') {
-            confetti({
-                particleCount: 250,
-                spread: 180,
-                startVelocity: 50,
-                origin: { y: 0.5 }
-            });
-        }
-
-        setTimeout(() => {
-            if (giftBoxSection) giftBoxSection.style.display = "none";
-
-            if (surprise) {
-                surprise.classList.remove("hidden");
-                surprise.style.display = "block";
-            }
-
-            createHearts();
-        }, 800);
-    });
+  if (entered === CONFIG.SECRET_PASSWORD.toLowerCase()) {
+    // Success
+    passwordScreen.style.opacity = "0";
+    setTimeout(() => {
+      passwordScreen.classList.add("hidden");
+      giftContent.classList.remove("hidden");
+      initScratchCards();
+    }, 500);
+  } else {
+    // Error
+    errorMsg.classList.remove("hidden");
+    passwordCard.classList.remove("shake");
+    void passwordCard.offsetWidth; // Trigger reflow
+    passwordCard.classList.add("shake");
+  }
 }
 
-/* ==========================================
-   FLOATING HEARTS
-========================================== */
+/* =========================================================================
+   SCRATCH CARD GENERATION & LOGIC
+   ========================================================================= */
+function initScratchCards() {
+  scratchContainer.innerHTML = "";
 
-function createHearts() {
-    setInterval(() => {
-        const heart = document.createElement("div");
-        const heartIcons = ["❤️", "💖", "🎁", "💕", "💗"];
-        heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+  CONFIG.SCRATCH_ITEMS.forEach((item) => {
+    // Wrapper
+    const wrapper = document.createElement("div");
+    wrapper.className = "scratch-card-wrapper";
 
-        heart.style.position = "fixed";
-        heart.style.bottom = "-50px";
-        heart.style.left = Math.random() * 100 + "vw";
-        heart.style.fontSize = (20 + Math.random() * 30) + "px";
-        heart.style.zIndex = "10";
-        heart.style.pointerEvents = "none";
-        heart.style.animation = "heartFloat 7s linear forwards";
+    // Label
+    const label = document.createElement("div");
+    label.className = "card-label";
+    label.innerText = item.label;
 
-        document.body.appendChild(heart);
+    // Card Body
+    const card = document.createElement("div");
+    card.className = "scratch-card";
 
-        setTimeout(() => {
-            heart.remove();
-        }, 7000);
-    }, 450);
+    // Hidden Text
+    const hiddenText = document.createElement("div");
+    hiddenText.className = "scratch-content";
+    hiddenText.innerText = item.hidden;
+
+    // Canvas (The scratchable surface)
+    const canvas = document.createElement("canvas");
+
+    card.appendChild(hiddenText);
+    card.appendChild(canvas);
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(card);
+
+    scratchContainer.appendChild(wrapper);
+
+    // Setup canvas context and logic
+    setupCanvas(canvas);
+  });
 }
 
-/* ==========================================
-   KEYFRAMES FOR FLOATING HEARTS
-========================================== */
+function setupCanvas(canvas) {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
-const style = document.createElement("style");
-style.innerHTML = `
-@keyframes heartFloat {
-    0% {
-        transform: translateY(0) rotate(0deg);
-        opacity: 0;
+  // Set actual canvas size based on parent dimensions
+  const width = 250;
+  const height = 150;
+
+  // Adjust for mobile screens if necessary based on CSS
+  const isMobile = window.innerWidth <= 600;
+  canvas.width = isMobile ? 220 : width;
+  canvas.height = isMobile ? 130 : height;
+
+  // Fill with metallic silver gradient
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#c0c0c0");
+  gradient.addColorStop(0.5, "#e8e8e8");
+  gradient.addColorStop(1, "#a0a0a0");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Add some noise/texture (optional)
+  ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+  for (let i = 0; i < 50; i++) {
+    ctx.beginPath();
+    ctx.arc(
+      Math.random() * canvas.width,
+      Math.random() * canvas.height,
+      Math.random() * 2,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+  }
+
+  // "SCRATCH ME" text on top
+  ctx.font = "bold 20px sans-serif";
+  ctx.fillStyle = "#666";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("SCRATCH ME", canvas.width / 2, canvas.height / 2);
+
+  // Interaction logic
+  let isDrawing = false;
+
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+    };
+  }
+
+  function startDrawing(e) {
+    isDrawing = true;
+    scratch(e);
+    e.preventDefault();
+  }
+
+  function stopDrawing() {
+    isDrawing = false;
+    checkReveal();
+  }
+
+  function scratch(e) {
+    if (!isDrawing) return;
+
+    const pos = getMousePos(e);
+
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, CONFIG.BRUSH_SIZE, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Event listeners
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", scratch);
+  canvas.addEventListener("mouseup", stopDrawing);
+  canvas.addEventListener("mouseleave", stopDrawing);
+
+  canvas.addEventListener("touchstart", startDrawing, { passive: false });
+  canvas.addEventListener("touchmove", scratch, { passive: false });
+  canvas.addEventListener("touchend", stopDrawing);
+
+  // Check if scratched enough to reveal completely
+  function checkReveal() {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    let transparentPixels = 0;
+
+    // Every 4th value is Alpha
+    for (let i = 3; i < pixels.length; i += 4) {
+      if (pixels[i] === 0) {
+        transparentPixels++;
+      }
     }
-    20% {
-        opacity: 1;
+
+    const totalPixels = pixels.length / 4;
+    const percentageScratched = (transparentPixels / totalPixels) * 100;
+
+    // If 60% scratched, clear the rest
+    if (percentageScratched > 60) {
+      canvas.style.transition = "opacity 0.5s ease";
+      canvas.style.opacity = "0";
+      setTimeout(() => {
+        canvas.style.display = "none";
+      }, 500);
     }
-    100% {
-        transform: translateY(-120vh) rotate(360deg);
-        opacity: 0;
-    }
+  }
 }
-.cursor-sparkle {
-    position: absolute;
-    pointer-events: none;
-    user-select: none;
-    animation: sparkleFade 1s linear forwards;
-    font-size: 14px;
-}
-@keyframes sparkleFade {
-    0% { transform: scale(0.5) translateY(0); opacity: 1; }
-    100% { transform: scale(1.4) translateY(-25px); opacity: 0; }
-}
-`;
-
-document.head.appendChild(style);
-
-/* ==========================================
-   PERSISTENT BACKGROUND MUSIC PLAYER
-========================================== */
-
-const giftMusic = document.getElementById("giftMusic");
-
-function initGiftMusic() {
-    if (!giftMusic) return;
-
-    giftMusic.addEventListener("timeupdate", () => {
-        if (sessionStorage.getItem("bgMusicPlaying") === "true") {
-            sessionStorage.setItem("bgMusicTime", giftMusic.currentTime);
-        }
-    });
-
-    const isSavedPlaying = sessionStorage.getItem("bgMusicPlaying") === "true";
-    const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
-
-    if (isSavedPlaying) {
-        if (savedTime > 0) {
-            try { giftMusic.currentTime = savedTime; } catch (e) { }
-        }
-        playGiftMusic();
-    }
-}
-
-function playGiftMusic() {
-    if (!giftMusic) return;
-    giftMusic.play().then(() => {
-        sessionStorage.setItem("bgMusicPlaying", "true");
-    }).catch((err) => {
-        console.log("Gift audio play deferred:", err);
-        const resumeGiftAudio = () => {
-            if (sessionStorage.getItem("bgMusicPlaying") === "true") {
-                const savedTime = parseFloat(sessionStorage.getItem("bgMusicTime") || "0");
-                if (savedTime > 0 && giftMusic.currentTime === 0) {
-                    try { giftMusic.currentTime = savedTime; } catch (e) { }
-                }
-                giftMusic.play().catch(() => { });
-            }
-            window.removeEventListener("click", resumeGiftAudio);
-            window.removeEventListener("touchstart", resumeGiftAudio);
-        };
-        window.addEventListener("click", resumeGiftAudio);
-        window.addEventListener("touchstart", resumeGiftAudio);
-    });
-}
-
-/* ==========================================
-   INITIALIZE
-========================================== */
-
-window.addEventListener("load", () => {
-    createStars();
-    initGiftMusic();
-});
